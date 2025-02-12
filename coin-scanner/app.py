@@ -65,7 +65,7 @@ class CoinData:
             for token_address in tokens:
                 rich_console.print(f"[cyan]Scanning {token_address}...[/cyan]", end="\r")
                 result = self._scan_single_token(token_address)
-                if result:
+                if result: #check if empty
                     organic_scores[token_address] = result
         return organic_scores
 
