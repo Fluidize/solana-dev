@@ -16,23 +16,21 @@ from rich.text import Text
 from rich.box import SQUARE
 import sys
 
-# Initialize Rich Console
 rich_console = Console()
 
 class CoinData:
     def __init__(self):
-        """Initialize WebDriver for Selenium in headless mode."""
         self.data_url = "https://api.dexscreener.com/token-profiles/latest/v1"
 
-        # Set up Chrome options
         options = Options()
         options.add_argument("--disable-gpu")
         options.add_argument("--no-sandbox")
-        options.add_argument("--headless")  # Run in background
-        options.add_argument("--log-level=3")  # Suppress unnecessary logs
+        options.add_argument("--headless")  # run in background
+        options.add_argument("--log-level=3")  # suppress unnecessary logs
         options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-        # Initialize WebDriver once for the class
+        # initialize WebDriver once for the class
+        rich_console.print("[bold green]Initializing selenium webscraper...[/bold green]", end="")
         self.driver = webdriver.Chrome(options=options)
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', { get: () => false });")
 
@@ -59,9 +57,9 @@ class CoinData:
     def analyze_token_security(self, tokens):
         organic_scores = {}
 
-        if isinstance(tokens, str):  # If scanning a single token
+        if isinstance(tokens, str):  # if scanning a single token
             return self._scan_single_token(tokens)
-        else:  # If scanning multiple tokens
+        else:  # multiple tokens
             for token_address in tokens:
                 rich_console.print(f"[cyan]Scanning {token_address}...[/cyan]", end="\r")
                 result = self._scan_single_token(token_address)
@@ -83,21 +81,27 @@ class CoinData:
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".flex.items-center.rounded-r.px-2.text-sm.font-medium.text-black"))
             ).text
 
-            return (token_name, token_address, float(organic_score), f"https://rugcheck.xyz/tokens/{token_address}")
+            price = WebDriverWait(self.driver, 5).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, ".flex.items-center.text-lg.font-semibold"))
+            ).text.replace("\n", "").replace("\t", "").replace("    ", "") #subscript does newline for some reason
+
+            #token name, address + hypertext rugcheck.xyz, score, price
+            return (token_name, f"[link=https://rugcheck.xyz/tokens/{token_address}]{token_address}", organic_score, price) #[link=] for hypertext
 
         except Exception as e:
-            rich_console.print(f"[bold red]Error scanning {token_address}: {e}[/bold red]")
+            rich_console.print(f"[bold red]Error scanning {token_address}[/bold red]")
+            print(e)
             return None
 
     def scan(self):
         coins = requests.get(self.data_url).json()
         data = self.format(coins)
-        jup_data = self.analyze_token_security(data.keys())  # Get addresses and scores
+        jup_data = self.analyze_token_security(data.keys())  # get token data from jupiter
 
         # Format data for display
         table_data = [
-            (data[0], addr, data[2], data[3])  # Token name, address, score, rugcheck link
-            for addr, score in jup_data.items()
+            (data[0], data[1], data[2], data[3])  # token name, address + hypertext rugcheck.xyz, score, price
+            for key, data in jup_data.items()
         ]
         return table_data
 
@@ -122,15 +126,19 @@ class CommandUI:
     def scan_auto(self):
         table = Table(title="[bold cyan]Jupiter Organic Scores[/bold cyan]", header_style="bold white", box=SQUARE)
         table.add_column("Name", justify="center", style="bold white")
-        table.add_column("Token", justify="center")
+        table.add_column("Token + Rugcheck.xyz URL", justify="center", style="underline bright_blue")
         table.add_column("Score", justify="center")
-        table.add_column("Rugcheck.xyz", justify="center", style="underline bright_blue")
+        table.add_column("Price", justify="center")
+        table.add_column("Mkt Cap", justify="center")
+        table.add_column("Liquidity", justify="center")
+        table.add_column("24h Volume", justify="center")
+        table.add_column("Holders", justify="center")
 
         table_data = self.CoinData.scan()
 
         for data in table_data:
             score_style = self._get_score_style(data[2])
-            table.add_row(data[0], data[1], f"[{score_style}]{str(data[2])}[/{score_style}]", data[3])
+            table.add_row(data[0], data[1], f"[{score_style}]{str(data[2])}[/{score_style}]",data[3])
 
         rich_console.print(table)
 
@@ -144,17 +152,21 @@ class CommandUI:
 
         table = Table(title="[bold cyan]Jupiter Organic Scores[/bold cyan]", header_style="bold white", box=SQUARE)
         table.add_column("Name", justify="center", style="bold white")
-        table.add_column("Token", justify="center")
+        table.add_column("Token + Rugcheck.xyz URL", justify="center", style="underline bright_blue")
         table.add_column("Score", justify="center")
-        table.add_column("Rugcheck.xyz", justify="center", style="underline bright_blue")
+        table.add_column("Price", justify="center")
+        table.add_column("Mkt Cap", justify="center")
+        table.add_column("Liquidity", justify="center")
+        table.add_column("24h Volume", justify="center")
+        table.add_column("Holders", justify="center")
 
         score_style = self._get_score_style(table_data[2])
-        table.add_row(table_data[0], table_data[1], f"[{score_style}]{str(table_data[2])}[/{score_style}]", table_data[3])
+        table.add_row(table_data[0], table_data[1], f"[{score_style}]{str(table_data[2])}[/{score_style}]")
 
         rich_console.print(table)
 
     def _get_score_style(self, score):
-        """Assigns colors based on the score range."""
+        score = float(score)
         if score >= 80.00:
             return "bold bright_green"
         elif score > 0.00:
