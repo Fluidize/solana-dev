@@ -85,8 +85,16 @@ class CoinData:
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".flex.items-center.text-lg.font-semibold"))
             ).text.replace("\n", "").replace("\t", "").replace("    ", "") #subscript does newline for some reason
 
+            elements = self.driver.find_elements(By.CSS_SELECTOR, ".flex.items-center.text-sm.font-semibold") #mkt cap , liquidity, 24h vol, holders
+            elements = [element.text for element in elements if element.text]
+            if elements[3] == "Instant": #liquidity box is gone
+                elements[3] = elements[2] #shift
+                elements[2] = elements[1]
+                elements[1] = "[bold red]None[/bold red]"
+
+
             #token name, address + hypertext rugcheck.xyz, score, price
-            return (token_name, f"[link=https://rugcheck.xyz/tokens/{token_address}]{token_address}", organic_score, price) #[link=] for hypertext
+            return (token_name, f"[link=https://rugcheck.xyz/tokens/{token_address}]{token_address}", organic_score, price, elements[0], elements[1], elements[2], elements[3]) #[link=] for hypertext
 
         except Exception as e:
             rich_console.print(f"[bold red]Error scanning {token_address}[/bold red]")
@@ -98,12 +106,14 @@ class CoinData:
         data = self.format(coins)
         jup_data = self.analyze_token_security(data.keys())  # get token data from jupiter
 
-        # Format data for display
+        # Format data for display - flatten
         table_data = [
-            (data[0], data[1], data[2], data[3])  # token name, address + hypertext rugcheck.xyz, score, price
+            (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7])  # token name, address + hypertext rugcheck.xyz, score, price
             for key, data in jup_data.items()
         ]
         return table_data
+
+
 
 class CommandUI:
     def __init__(self):
@@ -122,7 +132,7 @@ class CommandUI:
         help_text.append("\n  - scan: Scan a specific token address.")
         help_text.append("\n  - exit: Exit the app")
         rich_console.print(Panel(help_text))
-
+    
     def scan_auto(self):
         table = Table(title="[bold cyan]Jupiter Organic Scores[/bold cyan]", header_style="bold white", box=SQUARE)
         table.add_column("Name", justify="center", style="bold white")
@@ -138,15 +148,15 @@ class CommandUI:
 
         for data in table_data:
             score_style = self._get_score_style(data[2])
-            table.add_row(data[0], data[1], f"[{score_style}]{str(data[2])}[/{score_style}]",data[3])
+            table.add_row(data[0], data[1], f"[{score_style}]{str(data[2])}[/{score_style}]",data[3],data[4], data[5], data[6], data[7])
 
         rich_console.print(table)
 
     def scan(self):
         token = Prompt.ask("Enter token address")
-        table_data = self.CoinData.analyze_token_security(token)
+        data = self.CoinData.analyze_token_security(token)
 
-        if not table_data:
+        if not data:
             rich_console.print("[bold red]Failed to retrieve token data.[/bold red]")
             return
 
@@ -160,8 +170,8 @@ class CommandUI:
         table.add_column("24h Volume", justify="center")
         table.add_column("Holders", justify="center")
 
-        score_style = self._get_score_style(table_data[2])
-        table.add_row(table_data[0], table_data[1], f"[{score_style}]{str(table_data[2])}[/{score_style}]")
+        score_style = self._get_score_style(data[2])
+        table.add_row(data[0], data[1], f"[{score_style}]{str(data[2])}[/{score_style}]",data[3],data[4], data[5], data[6], data[7])
 
         rich_console.print(table)
 
