@@ -93,8 +93,8 @@ class CoinData:
                 elements[1] = "[bold red]None[/bold red]"
 
 
-            #token name, address + hypertext rugcheck.xyz, score, price
-            return (token_name, f"[link=https://rugcheck.xyz/tokens/{token_address}]{token_address}", organic_score, price, elements[0], elements[1], elements[2], elements[3]) #[link=] for hypertext
+            #token name, address, score, price, mkt cap , liquidity, 24h vol, holders
+            return (token_name, token_address, organic_score, price, elements[0], elements[1], elements[2], elements[3]) #[link=] for hypertext
 
         except Exception as e:
             rich_console.print(f"[bold red]Error scanning {token_address}[/bold red]")
@@ -108,7 +108,7 @@ class CoinData:
 
         # Format data for display - flatten
         table_data = [
-            (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7])  # token name, address + hypertext rugcheck.xyz, score, price
+            (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7])
             for key, data in jup_data.items()
         ]
         return table_data
@@ -136,19 +136,20 @@ class CommandUI:
     def scan_auto(self):
         table = Table(title="[bold cyan]Jupiter Organic Scores[/bold cyan]", header_style="bold white", box=SQUARE)
         table.add_column("Name", justify="center", style="bold white")
-        table.add_column("Token + Rugcheck.xyz URL", justify="center", style="underline bright_blue")
+        table.add_column("Token + Rugcheck.xyz URL", justify="center")
         table.add_column("Score", justify="center")
         table.add_column("Price", justify="center")
         table.add_column("Mkt Cap", justify="center")
         table.add_column("Liquidity", justify="center")
         table.add_column("24h Volume", justify="center")
         table.add_column("Holders", justify="center")
+        table.add_column("GMGN.ai", justify="center")
 
         table_data = self.CoinData.scan()
 
         for data in table_data:
             score_style = self._get_score_style(data[2])
-            table.add_row(data[0], data[1], f"[{score_style}]{str(data[2])}[/{score_style}]",data[3],data[4], data[5], data[6], data[7])
+            table.add_row(data[0], f"[underline bright_blue][link=https://rugcheck.xyz/tokens/{data[1]}]{data[1]}[/underline bright_blue]", f"[{score_style}]{str(data[2])}[/{score_style}]",data[3],data[4], data[5], data[6], data[7], f"[underline bright_green][link=https://gmgn.ai/sol/tokens/{data[1]}]TRADE[/underline bright_green]")
 
         rich_console.print(table)
 
@@ -162,16 +163,17 @@ class CommandUI:
 
         table = Table(title="[bold cyan]Jupiter Organic Scores[/bold cyan]", header_style="bold white", box=SQUARE)
         table.add_column("Name", justify="center", style="bold white")
-        table.add_column("Token + Rugcheck.xyz URL", justify="center", style="underline bright_blue")
+        table.add_column("Token + Rugcheck.xyz URL", justify="center")
         table.add_column("Score", justify="center")
         table.add_column("Price", justify="center")
         table.add_column("Mkt Cap", justify="center")
         table.add_column("Liquidity", justify="center")
         table.add_column("24h Volume", justify="center")
         table.add_column("Holders", justify="center")
+        table.add_column("GMGN.ai", justify="center")
 
         score_style = self._get_score_style(data[2])
-        table.add_row(data[0], data[1], f"[{score_style}]{str(data[2])}[/{score_style}]",data[3],data[4], data[5], data[6], data[7])
+        table.add_row(data[0], f"[underline bright_blue][link=https://rugcheck.xyz/tokens/{data[1]}]{data[1]}[/underline bright_blue]", f"[{score_style}]{str(data[2])}[/{score_style}]",data[3],data[4], data[5], data[6], data[7], f"[underline bright_green][link=https://gmgn.ai/sol/tokens/{data[1]}]TRADE[/underline bright_green]")
 
         rich_console.print(table)
 
