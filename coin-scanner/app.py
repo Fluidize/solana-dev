@@ -92,12 +92,12 @@ class CoinData:
     def scan(self):
         coins = requests.get(self.data_url).json()
         data = self.format(coins)
-        organic_scores = self.analyze_token_security(data.keys())  # Get addresses and scores
+        jup_data = self.analyze_token_security(data.keys())  # Get addresses and scores
 
         # Format data for display
         table_data = [
-            (score[0], addr, score[2], score[3])  # Token name, address, score, rugcheck link
-            for addr, score in organic_scores.items()
+            (data[0], addr, data[2], data[3])  # Token name, address, score, rugcheck link
+            for addr, score in jup_data.items()
         ]
         return table_data
 
