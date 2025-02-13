@@ -58,16 +58,16 @@ class CoinData:
         organic_scores = {}
 
         if isinstance(tokens, str):  # if scanning a single token
-            return self._scan_single_token(tokens)
+            return self._scan_single_token_jup(tokens)
         else:  # multiple tokens
             for token_address in tokens:
                 rich_console.print(f"[cyan]Scanning {token_address}...[/cyan]", end="\r")
-                result = self._scan_single_token(token_address)
+                result = self._scan_single_token_jup(token_address)
                 if result: #check if empty
                     organic_scores[token_address] = result
         return organic_scores
 
-    def _scan_single_token(self, token_address):
+    def _scan_single_token_jup(self, token_address): #data from jup
         check_url = f"https://jup.ag/tokens/{token_address}"
         try:
             self.driver.get(check_url)  # Load URL
@@ -122,15 +122,17 @@ class CommandUI:
             "help": self.show_help,
             "scan": self.scan,
             "scan-auto": self.scan_auto,
+            "rugcheck": self.rugcheck,
             "exit": self.exit_app
         }
 
     def show_help(self):
         help_text = Text("Available Commands:", style="bold green")
-        help_text.append("\n  - help: Show this help message")
-        help_text.append("\n  - scan-auto: Scan coins from Dexscreener.")
-        help_text.append("\n  - scan: Scan a specific token address.")
-        help_text.append("\n  - exit: Exit the app")
+        help_text.append("\n  - help - Show this help message")
+        help_text.append("\n  - scan-auto - Scan coins from Dexscreener.")
+        help_text.append("\n  - scan <token> - Scan a specific token address.")
+        help_text.append("\n  - rugcheck <token> - Generate a link to rugcheck.xyz.")
+        help_text.append("\n  - exit - Exit the app")
         rich_console.print(Panel(help_text))
     
     def scan_auto(self):
@@ -149,12 +151,12 @@ class CommandUI:
 
         for data in table_data:
             score_style = self._get_score_style(data[2])
-            table.add_row(data[0], f"[underline bright_blue][link=https://rugcheck.xyz/tokens/{data[1]}]{data[1]}[/underline bright_blue]", f"[{score_style}]{str(data[2])}[/{score_style}]",data[3],data[4], data[5], data[6], data[7], f"[underline bright_green][link=https://gmgn.ai/sol/tokens/{data[1]}]TRADE[/underline bright_green]")
+            table.add_row(data[0], f"[underline bright_blue][link=https://rugcheck.xyz/tokens/{data[1]}]{data[1]}[/underline bright_blue]", f"[{score_style}]{str(data[2])}[/{score_style}]",data[3],data[4], data[5], data[6], data[7], f"[underline bright_green][link=https://gmgn.ai/sol/token/{data[1]}]{data[0]}[/underline bright_green]")
 
         rich_console.print(table)
 
-    def scan(self):
-        token = Prompt.ask("Enter token address")
+    def scan(self,token):
+        # token = Prompt.ask("Enter token address")
         data = self.CoinData.analyze_token_security(token)
 
         if not data:
@@ -173,9 +175,12 @@ class CommandUI:
         table.add_column("GMGN.ai", justify="center")
 
         score_style = self._get_score_style(data[2])
-        table.add_row(data[0], f"[underline bright_blue][link=https://rugcheck.xyz/tokens/{data[1]}]{data[1]}[/underline bright_blue]", f"[{score_style}]{str(data[2])}[/{score_style}]",data[3],data[4], data[5], data[6], data[7], f"[underline bright_green][link=https://gmgn.ai/sol/tokens/{data[1]}]TRADE[/underline bright_green]")
+        table.add_row(data[0], f"[underline bright_blue][link=https://rugcheck.xyz/tokens/{data[1]}]{data[1]}[/underline bright_blue]", f"[{score_style}]{str(data[2])}[/{score_style}]",data[3],data[4], data[5], data[6], data[7], f"[underline bright_green][link=https://gmgn.ai/sol/token/{data[1]}]{data[0]}[/underline bright_green]")
 
         rich_console.print(table)
+
+    def rugcheck(self, token):
+        rich_console.print(f"[underline bright_blue]https://rugcheck.xyz/tokens/{token}[/underline bright_blue]")
 
     def _get_score_style(self, score):
         score = float(score)
@@ -187,18 +192,25 @@ class CommandUI:
             return "bold bright_red"
 
     def exit_app(self):
-        """Closes Selenium WebDriver and exits the app."""
         self.CoinData.close()  # Ensure WebDriver is properly closed
         rich_console.print("Exiting the app...", style="bold red")
         sys.exit()
 
     def run(self):
         while True:
-            command = Prompt.ask("\nEnter a command", default="help")
-            if command in self.commands:
-                self.commands[command]()
+            command_input = Prompt.ask("\nEnter a command", default="help")
+            command_parts = command_input.split(" ")
+
+            command_name = command_parts[0]
+            command_args = command_parts[1:]
+
+            if command_name in self.commands:
+                try:
+                    self.commands[command_name](*command_args)
+                except TypeError as e:
+                    rich_console.print(f"[bold red]Error: Incorrect parameters ({e})[/bold red]")
             else:
-                rich_console.print(f"[bold red]Invalid command:[/bold red] {command}. Type [bold green]help[/bold green] for available commands.")
+                rich_console.print(f"[bold red]Invalid command:[/bold red] {command_name}. Type [bold green]help[/bold green] for available commands.")
 
 if __name__ == "__main__":
     ui = CommandUI()
