@@ -120,18 +120,25 @@ class CommandUI:
         self.CoinData = CoinData()
         self.commands = {
             "help": self.show_help,
-            "scan": self.scan,
+
+            "scan": self.scan, #alias
+            "sc": self.scan,
+
             "scan-auto": self.scan_auto,
+            "sca": self.scan_auto,
+
             "rugcheck": self.rugcheck,
+            "rc": self.rugcheck,
+            
             "exit": self.exit_app
         }
 
     def show_help(self):
         help_text = Text("Available Commands:", style="bold green")
         help_text.append("\n  - help - Show this help message")
-        help_text.append("\n  - scan-auto - Scan coins from Dexscreener.")
-        help_text.append("\n  - scan <token> - Scan a specific token address.")
-        help_text.append("\n  - rugcheck <token> - Generate a link to rugcheck.xyz.")
+        help_text.append("\n  - scan-auto - Scan coins from Dexscreener. | sca ")
+        help_text.append("\n  - scan <token> - Scan a specific token address. | sc")
+        help_text.append("\n  - rugcheck <token> - Generate a link to rugcheck.xyz. | rc")
         help_text.append("\n  - exit - Exit the app")
         rich_console.print(Panel(help_text))
     
