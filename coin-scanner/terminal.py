@@ -31,7 +31,7 @@ class CommandUI:
     def show_help(self):
         help_text = Text("Available Commands:", style="bold green")
         help_text.append("\n  - help - Show this help message")
-        help_text.append("\n  - scan-auto - Scan coins from Dexscreener. | sca ")
+        help_text.append("\n  - scan-auto <count>- Scan coins latest coins from pump.fun. Default=10 | sca ")
         help_text.append("\n  - scan <token> - Scan a specific token address. | sc")
         help_text.append("\n  - rugcheck <token> - Generate a link to rugcheck.xyz. | rc")
         help_text.append("\n  - exit - Exit the app")
@@ -40,7 +40,7 @@ class CommandUI:
     def _hypertext(self, text, link, style):
         return f"[{style}][link={link}]{text}[/{style}]"
 
-    def scan_auto(self):
+    def scan_auto(self, count=10):
         table = Table(title="[bold cyan]Memecoins[/bold cyan]", header_style="bold white", box=SQUARE)
         table.add_column("Symbol", justify="center", style="bold white")
         table.add_column("Name", justify="center")
@@ -56,7 +56,7 @@ class CommandUI:
         table.add_column("Freeze", justify="center")
         table.add_column("TRADE", justify="center")
 
-        table_data = self.CoinData.scan_auto()
+        table_data = self.CoinData.scan_auto(count)
         #symbol, name, address, timeago, price, mktcap, 24vol, fdv, liq, holders, mintA, freezeA
         for data in table_data:
             table.add_row(data[0],data[1],self._hypertext(data[2],f"https://rugcheck.xyz/tokens/{data[2]}", "bold bright_blue"),data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10], data[11], self._hypertext(data[0], f"https://gmgn.ai/sol/token/{data[2]}", "underline bright_green"))

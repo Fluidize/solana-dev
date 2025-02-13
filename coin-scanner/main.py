@@ -72,9 +72,9 @@ class CoinData:
             return ("NA", "NA", "NA", "NA","NA","NA")
 
 
-    def _get_new_tokens(self):
+    def _get_new_tokens(self,count):
         url = "https://api.jup.ag/tokens/v1/new"
-        params = {'limit':10}
+        params = {'limit':count}
         headers = {'Accept': 'application/json'}
         response = requests.request("GET", url, headers=headers, params=params)
         raw = response.json()
@@ -104,8 +104,9 @@ class CoinData:
             }
         return tokens
 
-    def scan_auto(self):
-        table_data = self._get_new_tokens()
+    def scan_auto(self, count=10):
+        rich_console.print(f"[bold bright_yellow]Scanning {count} tokens.[/bold bright_yellow]")
+        table_data = self._get_new_tokens(count)
         # Format data for display - flatten
         table_data = [
             #symbol, name, address, timeago, price, mktcap, 24vol, fdv, liq, mintA, freezeA
