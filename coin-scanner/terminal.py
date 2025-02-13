@@ -77,7 +77,7 @@ class CommandUI:
         rich_console.print(table)
 
     def rugcheck(self, token):
-        rich_console.print(f"[underline bright_blue]https://rugcheck.xyz/tokens/{token}[/underline bright_blue]")
+        rich_console.print(self._hypertext(f"https://rugcheck.xyz/tokens/{token}",f"https://rugcheck.xyz/tokens/{token}","bold underlined bright_blue"))
 
     def _get_score_style(self, score):
         score = float(score)
