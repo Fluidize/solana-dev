@@ -21,14 +21,15 @@ def setup_driver(headless=False):
 # Example function to visit a website and interact with elements
 def scrape_website():
     driver = setup_driver(headless=False)  # Set headless=True if you don't need UI
-    driver.get("https://example.com")  # Change to your target website
+    driver.get("https://gmgn.ai/meme?chain=sol&tab=new_creation")  # Change to your target website
 
     try:
         # Wait for an element to load
-        wait = WebDriverWait(driver, 10)
-        example_element = wait.until(EC.presence_of_element_located((By.TAG_NAME, "h1")))
+        wait = WebDriverWait(driver, 3)
+        example_element = driver.find_elements(By.CSS_SELECTOR, ".css-9enbzl")
+        examples = [example.text for example in example_element]
         print("Page Title:", driver.title)
-        print("Found Element Text:", example_element.text)
+        print("Found Element Text:", examples)
 
         time.sleep(5) #see if website has anti scrape
 

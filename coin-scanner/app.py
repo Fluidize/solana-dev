@@ -92,7 +92,6 @@ class CoinData:
                 elements[2] = elements[1]
                 elements[1] = "[bold red]None[/bold red]"
 
-
             #token name, address, score, price, mkt cap , liquidity, 24h vol, holders
             return (token_name, token_address, organic_score, price, elements[0], elements[1], elements[2], elements[3]) #[link=] for hypertext
 
@@ -100,6 +99,9 @@ class CoinData:
             rich_console.print(f"[bold red]Error scanning {token_address}[/bold red]")
             print(e)
             return None
+
+    def _scan_single_token_gmgn(self, token_address):
+        pass
 
     def scan(self):
         coins = requests.get(self.data_url).json()
@@ -129,7 +131,7 @@ class CommandUI:
 
             "rugcheck": self.rugcheck,
             "rc": self.rugcheck,
-            
+
             "exit": self.exit_app
         }
 
