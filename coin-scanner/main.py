@@ -72,9 +72,9 @@ class CoinData:
             return ("NA", "NA", "NA", "NA","NA","NA")
 
 
-    def _get_new_tokens(self,count):
+    def _get_new_tokens(self,limit):
         url = "https://api.jup.ag/tokens/v1/new"
-        params = {'limit':count}
+        params = {'limit':limit}
         headers = {'Accept': 'application/json'}
         response = requests.request("GET", url, headers=headers, params=params)
         raw = response.json()
@@ -82,8 +82,9 @@ class CoinData:
         #UNUSED DATA
         #"known_markets": token["known_markets"]
         #"metadata_updated_at": datetime.datetime.utcfromtimestamp(token["metadata_updated_at"]).strftime('%Y-%m-%d %H:%M:%S')
+        count = 0
         for token in raw:
-            rich_console.print(f"[cyan]Scanning {token['mint']}...[/cyan]", end="\r")
+            rich_console.print(f"[cyan]Scanning {token['mint']}... ({count})[/cyan]", end="\r")
             elements = self._webscrape(token['mint'])
             tokens[token["mint"]] = {
                 #FROM API
@@ -102,6 +103,7 @@ class CoinData:
                 "liquidity": elements[4],
                 "holders": elements[5]
             }
+            count += 1
         return tokens
 
     def scan_auto(self, count=10):
